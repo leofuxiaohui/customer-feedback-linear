@@ -151,4 +151,83 @@ Use as the `body` for `save_comment`. Keep it short — it's the thread-level ho
 
 ## Worked example
 
-A representative filled instance of this pattern (a Testing Center multi-turn gap) produced a single evidence-pack doc — verdict → conversations → runtime root-cause proof → per-case results → asks → appendix — plus a summary comment linking it. Use that shape as a reference for depth and tone; the template above is feature-agnostic and applies to any Agentforce feedback.
+A concrete, filled instance to imitate. **Scenario:** an FDE finds that a multi-turn Testing Center suite reports a `FAILURE` that does **not** reproduce in live Agent Preview. They gathered the evidence themselves — 4 multi-turn scenarios run both ways, the Testing Center run results, and a Data Cloud runtime trace — then asked their coding agent to package it onto issue `AFP-###`. Below is what the agent produced. (Data here is a demo agent with mock records — no real customer data.)
+
+### → The document (created with `save_document`, `issue: AFP-###`)
+
+Title: **"Multi-turn testing gap — evidence pack (Live Preview vs Testing Center)"**
+
+> **TL;DR.** Agentforce Testing Center executes only the **final** turn of a multi-turn test live and rebuilds context from the `conversationHistory` **text**. Any value that existed solely as a prior **action output** is lost — so a correct agent looks broken. And some cases *pass* only because credentials happened to sit in the history text, which is false confidence.
+
+**Contents:** 1. Context · 2. Verdict · 3. Evidence (the conversations) · 4. Why they differ · 5. Testing Center results · 6. Root-cause proof · 7. Asks · 8. Appendix
+
+**1. Context**
+- Feature: Testing Center (multi-turn `sf agent test`)
+- Environment: agent `PowerGreens1_xvl2to` v3 (active), org `my-org`
+- Customer & use case: *<from the intake fields — the need to validate stateful multi-turn flows before scaling>*
+
+**2. Verdict** — 3/4 scenarios agree between live and Testing Center; **1 diverges (S2, name recall)**; and 2 of the "agreements" hold only because credentials sat in the transcript.
+
+| Scenario | Live preview | Testing Center | Match |
+|---|---|---|---|
+| S1 order status after verify | tracking returned | re-ran verify+status → tracking | ✅ agree |
+| **S2 name recall** | "Jane Smith" | "I cannot provide the full name" (FAILURE) | ❌ **diverge** |
+| S3 topic switch | status w/o re-verify | re-ran verify+status → tracking | ✅ agree (diff path) |
+| S4 guardrail | refund declined | refund declined | ✅ agree |
+
+**3. Evidence — the divergent case (S2)**
+> *Live:* … "What is the full name on file?" → **"The full name on file for your account is Jane Smith."**
+> *Testing Center (final turn live, prior turns as static history):* same question → **"I cannot provide the full name on file…"** · `actionsSequence: []`
+
+**4. Why they differ** — live executes every turn and persists variable state; Testing Center executes only the final turn and rebuilds state from transcript text, so a prior action's output that isn't in the text is lost. S1/S3 only "pass" because the order # + email were in the history, letting it re-run `verify_customer`.
+
+**5. Testing Center results (per case)**
+
+| Case | Scenario | actionsSequence | output_validation |
+|---|---|---|---|
+| 1 | S1 | `['verify_customer','get_order_status']` | PASS |
+| 2 | S2 | `[]` | **FAILURE** |
+| 3 | S3 | `['verify_customer','get_order_status']` | PASS |
+| 4 | S4 | `[]` | PASS |
+
+**6. Root-cause proof (Data Cloud runtime trace, `ssot__AiAgentInteractionStep__dlm`)**
+
+Live session — a `VARIABLE_UPDATE_STEP` fired on the verify turn:
+
+```
+// PRE
+{ "order_number":"", "is_verified":"", "customer_name":"" }
+// POST
+{ "order_number":"A-2231", "is_verified":"true", "customer_name":"Jane Smith" }
+```
+
+→ **1** step recorded `customer_name` (live) vs **0** in the Testing Center session. Same agent; the only difference is whether the verify turn actually ran. This is a testing-method limitation, not an agent defect.
+
+**7. Recommendation / product ask**
+1. Persist action-output state across turns by *executing* prior turns (not replaying them as text), **or**
+2. Warn when a multi-turn case depends on a value not in the transcript — today it silently reports FAILURE, **or**
+3. Document the limitation so `expectedActions`/`expectedOutcome` are only trusted when every needed value is in the history text.
+
+**8. Appendix** — session IDs, the exact `sf agent preview`/`sf agent test` invocations, and the Data Cloud SQL, with raw JSON in `<details>` blocks.
+
+### → The summary comment (posted with `save_comment`, `issueId: AFP-###`)
+
+> ## Testing Center reports FAILURE on a case that works live
+>
+> Reproduced the multi-turn state gap on a live agent and captured the root cause from the Data Cloud runtime trace.
+>
+> **TL;DR:** Testing Center runs only the final turn live and rebuilds context from the history *text*; any value that existed only as a prior action output (here, the verified name) is lost, so a correct agent looks broken.
+>
+> | Scenario | Live | Testing Center | Match |
+> |---|---|---|---|
+> | S2 name recall | "Jane Smith" | "cannot provide the full name" (FAILURE) | ❌ |
+>
+> **Ask:** persist action-output state across turns, or warn when a case depends on a value not in the transcript.
+>
+> **Full write-up (inline doc, no download):** 📄 [Multi-turn testing gap — evidence pack](<doc url>)
+
+### How an FDE/SE drives this with their coding agent
+
+> "Attach this feedback to **AFP-###** as an in-app doc + summary comment. Feature: Testing Center. Here's the evidence: [paste the 4 scenarios run both ways, the Testing Center results, and the Data Cloud trace]. It's a multi-turn state-persistence gap — Testing Center only runs the final turn."
+
+The agent then follows the Procedure above: verify workspace access → read the intake fields → draft the doc from the template → `save_document` → `save_comment` → report the links. The template is feature-agnostic — swap "scenarios" for whatever fits (findings, repro steps, examples) and the same shape applies to any Agentforce feature.
