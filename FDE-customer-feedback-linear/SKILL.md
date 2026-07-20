@@ -1,6 +1,6 @@
 ---
 name: FDE-customer-feedback-linear
-description: Use when an FDE or Solution Engineer wants to share detailed Agentforce customer feedback via Linear — attach it to the customer-feedback intake issue (AFP-*) as one self-contained in-app Linear Document plus a concise summary comment on the thread, so PMs review everything without downloading anything and without needing a meeting. The doc includes an anticipated-PM-questions section and a machine-readable feedback-record block that the companion PM-feedback-triage-linear skill (a PM's coding agent) can parse for cross-customer insights. Works for any feature (Testing Center, Agent Script, Voice, Builder, etc.).
+description: Use when an FDE or Solution Engineer wants to share detailed Agentforce customer feedback via Linear — attach it to the customer-feedback intake issue (AFP-*) as one self-contained in-app Linear Document plus a concise summary comment on the thread, so PMs review everything without downloading anything and without needing a meeting. The doc includes an anticipated-PM-questions section and a machine-readable feedback-record block that the companion PM-feedback-triage-linear skill (a PM's coding agent) can parse for cross-customer insights. Works for any feature (Testing Center, Agent Script, Voice, Builder, etc.). Also handles round-2: answering PM follow-ups on the thread until the loop closes with a recorded PM disposition.
 ---
 
 # FDE Customer Feedback → Linear
@@ -37,7 +37,7 @@ Feedback issues (`AFP-*`) live in the **`eventsmobileapp`** workspace, team **"A
 
 ## Procedure
 
-1. **Verify + read context.** `get_issue <id>`. Read the intake fields (**Customer Name, Product Feature Family/Group, Feedback Theme, Business Outcome/Use Case**) and tailor the framing so the evidence visibly answers the customer's stated need — quote it where useful.
+1. **Verify + read context.** `get_issue <id>`. Read the intake fields (**Customer Name, Product Feature Family/Group, Feedback Theme, Business Outcome/Use Case**) and tailor the framing so the evidence visibly answers the customer's stated need — quote it where useful. If your evidence **corrects or sharpens the intake's problem statement** (e.g. the intake says "not supported" but the mechanism is "supported but state-lossy"), plan to say so explicitly — the roadmap must aim at the true mechanism, not the first approximation.
 2. **Draft the doc** from the *Evidence document template* below. Fill only the sections that apply. Keep raw data/logs/queries inside collapsible `<details>` blocks so the main narrative stays clean and scannable. Lead with the strongest proof.
 3. **Pre-answer the PM.** Generate the *"Questions a PM will ask"* section: put yourself in the triaging PM's seat and answer the standard follow-ups (see the checklist in the template — scope, regression-vs-always, frequency, workaround, quantified impact, what-changes-if-fixed). Where the FDE/SE can't answer from the evidence, ask them once; anything still unanswered goes in **open questions** — flagged, not omitted. This section is what replaces the meeting.
 4. **Emit the `feedback-record` block** (schema below) as the last section of the doc. Derive values from the evidence and intake fields; **use only the fixed vocabulary** for the enum fields — if none fits, use the closest and note the nuance in `notes`. Confirm `severity` and `customer_impact` with the FDE/SE if not obvious — these drive PM prioritization rollups.
@@ -46,7 +46,7 @@ Feedback issues (`AFP-*`) live in the **`eventsmobileapp`** workspace, team **"A
    - The create call returns the doc URL. **Update the doc once more** (`save_document` with `id: <doc id>`) to fill `evidence_doc:` in the record block with that URL, so the record is self-locating.
 6. **Post the summary comment:** `save_comment` with `issueId: <id>` using the *Summary comment template* below — a TL;DR, a compact results table if applicable, the ask, open questions (if any), and a link to the doc.
 7. **Binary evidence only** (screenshots, PDFs that must be seen as images): use the attachment flow — `prepare_attachment_upload` (needs the exact byte size) → PUT the raw bytes to the returned signed URL with `curl --data-binary @file`, sending the returned headers **verbatim**, within 60s, **one file at a time** → `create_attachment_from_upload`. Prefer inline docs; attach a binary only when the picture *is* the evidence. (Linear does **not** render HTML attachments inline — never ship an HTML file as the deliverable; put the narrative in the doc.)
-8. **Report** the doc URL and confirm the comment posted.
+8. **Report** the doc URL and confirm the comment posted. State who the ball is with (normally the PM, for triage) and that the loop stays open until the PM posts a disposition (`triage_record`) — see the companion `PM-feedback-triage-linear` skill.
 
 ## Conventions & guardrails
 
@@ -55,6 +55,17 @@ Feedback issues (`AFP-*`) live in the **`eventsmobileapp`** workspace, team **"A
 - **Sanitize before posting.** Use mock/sample data; scrub org IDs, customer PII, tokens, and internal endpoints. State explicitly when data shown is mock.
 - **Retiring a doc:** the Linear MCP has **no delete/archive-document tool**. To retire a doc, rename it to a `↪ Merged — archive me` stub whose body links the surviving doc, and ask the user to archive it in-app (hover the doc → ⋯ → **Archive**).
 - **Markdown, not HTML.** Linear renders markdown tables, code fences, blockquotes, and `<details>` — use those. It will not render an HTML file inline.
+- **Every hand-off names an owner.** When you post open questions for the PM, say explicitly the ball is with the PM. When answering PM follow-ups, flag any question that needs *customer* input as `(customer-dependent)` — it can't be answered from the desk, and the thread should show that the delay is a customer touch, not FDE silence.
+
+---
+
+## Round 2 — responding to PM follow-ups
+
+1. When the PM posts follow-up questions (threaded under your summary comment), answer **on the same thread** — `save_comment` with `parentId: <the PM comment's id>` so the round-trip stays one nested conversation.
+2. Answer what you can from existing evidence. Questions flagged `(customer-dependent)` require a customer touch — say so, give an ETA, don't guess on the customer's behalf.
+3. **New evidence goes in the doc, not the thread**: append an appendix section to the existing evidence doc (`save_document` with `id:`) and link it from your reply. The thread carries conclusions; the doc carries proof.
+4. Update the doc's `feedback_record` **only if facts changed** (e.g. `repro_status`, `severity`, new `asks`). Answering a question doesn't require a record edit; changing a fact does. Remove resolved entries from `open_questions`.
+5. Aim to close all open questions in this one reply — the loop targets ≤ 2 round-trips (see the companion PM skill's closure rules).
 
 ---
 
@@ -197,6 +208,8 @@ Use as the `body` for `save_comment`. Keep it short — it's the thread-level ho
 <1–2 sentences framing, tying to the customer's stated ask (quote the intake if apt).>
 
 **TL;DR:** <the gap in one line.>
+
+**Refines the intake** *(omit if the intake framing holds)*: <one line — what the evidence shows the problem actually is, vs how the intake described it.>
 
 <optional compact results table — the same one from the doc's section 2>
 
