@@ -1,6 +1,6 @@
-# agentforce-feedback (Claude Code skill)
+# FDE-customer-feedback-linear (Claude Code skill)
 
-Turns detailed FDE/SE product feedback into a triage-ready **Linear in-app Document + summary comment** on a target issue (the Agentforce Feedback intake, `AFP-*`). Feature-agnostic — works for Testing Center, Agent Script, Voice, Builder, etc. No downloadable attachments: reviewers stay in Linear.
+A standalone skill for sharing **Agentforce customer feedback via Linear**. Turns detailed FDE/SE feedback into a triage-ready **Linear in-app Document + summary comment** on a target customer-feedback issue (the intake, `AFP-*`). Feature-agnostic — works for Testing Center, Agent Script, Voice, Builder, etc. No downloadable attachments: reviewers stay in Linear.
 
 ## What an FDE/SE gets
 
@@ -14,11 +14,13 @@ The FDE/SE supplies the evidence (transcripts, data, screenshots, root cause, th
 
 ## Install
 
-**Team-shared (recommended).** Commit the `agentforce-feedback/` folder into your team's skills location — either:
+The skill folder is `FDE-customer-feedback-linear/` (the folder containing `SKILL.md`).
+
+**Team-shared (recommended).** Place `FDE-customer-feedback-linear/` into your team's skills location — either:
 - a repo folder that syncs to `~/.claude/skills/` (or `.claude/skills/` in a shared project), or
 - your team's Claude Code **plugin** skills directory.
 
-**Personal / try it out.** Copy `agentforce-feedback/` into `~/.claude/skills/`.
+**Personal / try it out.** Copy `FDE-customer-feedback-linear/` into `~/.claude/skills/`. Cloning this repo directly into `~/.claude/skills/FDE-customer-feedback-linear/` also works.
 
 Each user needs the **Linear MCP** connected. Feedback issues live in the `eventsmobileapp` workspace — if `get_issue AFP-###` fails, reconnect via `/mcp` → linear → pick `eventsmobileapp`.
 
@@ -27,10 +29,10 @@ Each user needs the **Linear MCP** connected. Feedback issues live in the `event
 In Claude Code:
 
 ```
-/agentforce-feedback
+/FDE-customer-feedback-linear
 ```
 
-or just ask: *"attach this feedback to AFP-123 as an in-app doc + summary comment."* Provide the target issue, the feature area, and your evidence. Claude will ask for anything missing, then draft, post, and return the links.
+or just ask: *"share this customer feedback on AFP-123 as an in-app doc + summary comment."* Provide the target issue, the feature area, and your evidence. Claude will ask for anything missing, then draft, post, and return the links.
 
 ## Requirements
 

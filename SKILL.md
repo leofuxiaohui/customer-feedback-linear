@@ -1,11 +1,11 @@
 ---
-name: agentforce-feedback
-description: Use when an FDE or Solution Engineer wants to attach detailed, structured product feedback to a Linear issue (the Agentforce Feedback intake, AFP-*) — turns evidence the FDE/SE has already gathered into one self-contained in-app Linear Document plus a concise summary comment on the issue thread, so PMs review everything without downloading anything. Works for any feature (Testing Center, Agent Script, Voice, Builder, etc.).
+name: FDE-customer-feedback-linear
+description: Use when an FDE or Solution Engineer wants to share detailed Agentforce customer feedback via Linear — attach it to the customer-feedback intake issue (AFP-*) as one self-contained in-app Linear Document plus a concise summary comment on the thread, so PMs review everything without downloading anything. Turns evidence the FDE/SE has already gathered into a triage-ready write-up. Works for any feature (Testing Center, Agent Script, Voice, Builder, etc.).
 ---
 
-# Agentforce Feedback → Linear
+# FDE Customer Feedback → Linear
 
-Package detailed product feedback into a target Linear issue as **(1)** one self-contained **in-app Document** (the deep dive) and **(2)** a concise **summary comment** on the thread that links the doc. Everything stays inside Linear — no attachments to download.
+A standalone skill dedicated to sharing **Agentforce customer feedback** via Linear. Package detailed feedback into a target customer-feedback issue as **(1)** one self-contained **in-app Document** (the deep dive) and **(2)** a concise **summary comment** on the thread that links the doc. Everything stays inside Linear — no attachments to download.
 
 This skill handles **packaging and posting**. It does *not* gather the evidence (that is feature-specific) — the FDE/SE brings the evidence; you structure and publish it.
 
