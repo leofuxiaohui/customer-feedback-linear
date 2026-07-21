@@ -37,14 +37,14 @@ Feedback issues (`AFP-*`) live in the **`eventsmobileapp`** workspace, team **"A
 
 ## Procedure
 
-1. **Verify + read context.** `get_issue <id>`. Read the intake fields (**Customer Name, Product Feature Family/Group, Feedback Theme, Business Outcome/Use Case**) and tailor the framing so the evidence visibly answers the customer's stated need — quote it where useful. If your evidence **corrects or sharpens the intake's problem statement** (e.g. the intake says "not supported" but the mechanism is "supported but state-lossy"), plan to say so explicitly — the roadmap must aim at the true mechanism, not the first approximation. Set `feature_family` to mirror the intake's **Product Feature Family** (or Feature Group when that's the precise area); if your evidence refines which area it really is, say so in prose rather than silently diverging from the intake taxonomy.
+1. **Verify + read context.** `get_issue <id>`. Read the intake fields (**Customer Name, Product Feature Family/Group, Feedback Theme, Business Outcome/Use Case**) and tailor the framing so the evidence visibly answers the customer's stated need — quote it where useful. If your evidence **corrects or sharpens the intake's problem statement** (e.g. the intake says "not supported" but the mechanism is "supported but state-lossy"), plan to say so explicitly — the roadmap must aim at the true mechanism, not the first approximation. Set `feature_family` to mirror the intake's **Product Feature Family** (or Feature Group when that's the precise area); if your evidence refines which area it really is, say so in prose rather than silently diverging from the intake taxonomy. Then **prepend the thread-header block to the issue description** (see *The thread header* below) via `save_issue` with `description:`, above a `---` divider — keep the intake verbatim below the divider.
 2. **Draft the doc** from the *Evidence document template* below. Fill only the sections that apply. Keep raw data/logs/queries inside collapsible `<details>` blocks so the main narrative stays clean and scannable. Lead with the strongest proof.
 3. **Pre-answer the PM.** Generate the *"Questions a PM will ask"* section: put yourself in the triaging PM's seat and answer the standard follow-ups (see the checklist in the template — scope, regression-vs-always, frequency, workaround, quantified impact, what-changes-if-fixed). Where the FDE/SE can't answer from the evidence, ask them once; anything still unanswered goes in **open questions** — flagged, not omitted. This section is what replaces the meeting. **FDE open questions (`Q#`) are about the limits of *your own* evidence** — what your investigation did not cover (e.g. "reproduced on chat; not yet re-run on the customer's voice channel") — **not** product-wide questions like prevalence or roadmap, which are the PM's to answer. If you're tempted to ask "how many customers are affected," that's a PM triage action, not an FDE question.
 4. **Emit the `feedback-record` block** (schema below) as the last section of the doc. Derive values from the evidence and intake fields; **use only the fixed vocabulary** for the enum fields — if none fits, use the closest and note the nuance in `notes`. Confirm `severity` and `customer_impact` with the FDE/SE if not obvious — these drive PM prioritization rollups. (`open_questions` here are `Q#` evidence-limit items only — see step 3.)
 5. **Create the doc linked to the issue:** `save_document` with `issue: <id>`, a clear `title`, and the markdown `content`.
    - **Do not pass `icon`** unless you know it is a valid Linear icon name — an invalid icon name errors the whole call. Omit it.
    - The create call returns the doc URL. **Update the doc once more** (`save_document` with `id: <doc id>`) to fill `evidence_doc:` in the record block with that URL, so the record is self-locating.
-6. **Post the summary comment:** `save_comment` with `issueId: <id>` using the *Summary comment template* below — a TL;DR, a compact results table if applicable, the ask, open questions (if any), and a link to the doc.
+6. **Post the summary comment:** `save_comment` with `issueId: <id>` using the *Summary comment template* below — a TL;DR, a compact results table if applicable, the ask, open questions (if any), and a link to the doc. This is Round 1 of the loop, so it follows *Comment structure*: header envelope up top, numbered sections, and a trailing 📒 register snapshot as the last section.
 7. **Binary evidence only** (screenshots, PDFs that must be seen as images): use the attachment flow — `prepare_attachment_upload` (needs the exact byte size) → PUT the raw bytes to the returned signed URL with `curl --data-binary @file`, sending the returned headers **verbatim**, within 60s, **one file at a time** → `create_attachment_from_upload`. Prefer inline docs; attach a binary only when the picture *is* the evidence. (Linear does **not** render HTML attachments inline — never ship an HTML file as the deliverable; put the narrative in the doc.)
 8. **Report** the doc URL and confirm the comment posted. State who the ball is with (normally the PM, for triage) and that the loop stays open until the PM posts a disposition (`triage_record`) — see the companion `PM-feedback-triage-linear` skill.
 
@@ -57,47 +57,83 @@ Feedback issues (`AFP-*`) live in the **`eventsmobileapp`** workspace, team **"A
 - **Markdown, not HTML.** Linear renders markdown tables, code fences, blockquotes, and `<details>` — use those. It will not render an HTML file inline.
 - **Every hand-off names an owner.** When you post open questions for the PM, say explicitly the ball is with the PM. When answering PM follow-ups, flag any question that needs *customer* input as `(customer-dependent)` — it can't be answered from the desk, and the thread should show that the delay is a customer touch, not FDE silence.
 - **Never invent specifics.** Don't fabricate customer detail, channel mechanics, or quantified impact to fill the template. You have one customer's evidence — stay inside it. Mark any illustrative/simulated value explicitly, and prefer "not quantified" over a fake-precise number.
-- **Lead each loop comment with a one-line state banner** — e.g. `Round 2 · FDE → PM · 2 open (F1, F2)` — so a reader sees the round, direction, and what's outstanding before the detail.
+- **Lead each loop comment with the header envelope** (round · direction · purpose · ball · open) and **end it with the 📒 register snapshot** — see *Comment structure* and *Keep the register readable*.
+- **A token must not claim a step that hasn't happened.** `🔎 to size` = accepted, sizing pending — not estimated; only use `📋 accepted`/`✅ resolved`/`🔎 to size` when that state is actually true. Prefer under-claiming.
 - **The loop isn't done at the PM's disposition** — accepted asks become tracked work issues (by register ID) and the outcome returns to the customer via CS. See the PM skill's *From decision to delivery*. As FDE, when asked, confirm delivery details for your customer and relay the shipped outcome.
 
 ---
 
 ## The register (ask/answer ledger)
 
-Every **item** in the loop — an ask, a question, a follow-up, a decision — lives in a **register table with a stable ID and a status token**, never as a loose bullet. Prose is for rationale *around* the register. The same table shape runs from the first ask to the close, and the **closing comment carries the complete register** so the outcome reads in one scan.
+Every **item** in the loop — an ask, a question, a follow-up, a decision — has a stable **ID** and a **status token**, and lives in a compact **register table**, never as a loose bullet. Prose around the table carries the reasoning. Every round comment ends with the register (see *Keep the register readable*).
 
-| ID | Item | Owner | Status | Resolution |
-|---|---|---|---|---|
-| A1 | \<the item, one line\> | PM | ⏳ open | — |
+| Item | Status | Next |
+|---|---|---|
+| **A1** Execute prior turns to persist state | ⏳ open · R1 | PM |
 
-**Status tokens:** ⏳ open · 📋 accepted · 🔎 sized (accepted in principle, lives in an epic) · 🔴 blocked (needs customer / external input) · ✅ resolved · ❌ declined (reason in prose)
+- **Item** — the ID as a **bold prefix**, then a ≤6-word label (`**A1** Execute prior turns…`). Bold the ID **only in the round that item changed** — an at-a-glance delta marker; leave it unbolded in later rounds where it's unchanged.
+- **Status** — the token, then the round it last changed (`⏳ open · R1`).
+- **Next** — what happens next for this item, never blank: a **name** (`PM` / `FDE` / `FDE (customer)`) when someone owes the move · `✓ done` when resolved · `→ AFP-##` once it's tracked in delivery · `→ roadmap` when accepted but delivery isn't spun up yet.
+
+**Status tokens:** ⏳ open · 📋 accepted · 🔎 to size *(accepted in principle, **sizing still pending** — see the guardrail: never let a token claim a step that hasn't happened)* · 🔴 blocked *(needs customer / external input)* · ✅ resolved · ❌ declined *(reason in prose)*
 
 **ID prefixes:** `A#` = FDE ask · `Q#` = FDE evidence-limit question (about the boundary of the FDE's own investigation) · `F#` = PM follow-up to the FDE · `P#` = PM-owned triage action (e.g. a telemetry pull)
 
-IDs are also the join key to the machine records: an `A1` in the register is the same `A1` referenced in `feedback_record`/`triage_record`.
+IDs are the join key to the machine records: an `A1` in the register is the same `A1` referenced in `feedback_record`/`triage_record`.
 
-#### Keep the register readable
+#### Keep the register readable — the rolling snapshot
 
-The register is an **index, not the content** — every cell is a short **label (≤ ~6 words)**, never a sentence. The full ask, answer, and rationale live in the prose around the table. Two layouts, by round:
+**Every round comment ends with the full register** — all items so far, in the 3-column table above — as its last-numbered section (`## N · 📒 Register — after Round N (<side>)`). Because a Linear thread reads top-down, **the newest comment's register is always the live state** — there's no separate ledger comment to maintain, and each round's snapshot is a frozen audit record. Don't post delta-only registers, and don't keep a standalone "current state" comment at the end of the thread.
 
-- **Posing a round** (asks/questions, no answers yet): a terse **4-column** table — omit `Resolution` entirely until answers exist:
+Above the table, a one-line **hand-off header**: `**ball: 🔵 PM** · open: 2 (F1, F2)` — *ball* is the side that owes the next move (🟢 FDE, 🔵 PM); list PM-only self-owned items (e.g. a telemetry pull) separately as `+1 PM-side`. Below the table, one italic **legend** line (bold-ID = changed; the Next glyphs; the token set).
 
-  | ID | Item | Owner | Status |
-  |---|---|---|---|
-  | A1 | Execute prior turns to persist state | PM | ⏳ open |
+**Three columns, no more.** Markdown has no column-width syntax, and Linear splits table width **evenly by column count** — so every extra column starves the Item text (a 5-column register shreds the description into 3 lines). Keep the register to `Item · Status · Next`; never add `Owner`/`Since`/`ID` back as their own columns. Keep each Item label ≤~6 words; if a cell needs a clause to be understood, that clause belongs in the prose, not the table.
 
-- **Answering / closing** (resolutions carry reasoning): use **stacked entries**, one per item, so each gets full comment width:
+**Rationale lives in prose, not the table.** Asks and answers with their reasoning go in the numbered narrative sections as **stacked blockquote entries** — `> **A1 · 🔎 to size** — <label>` then `> → <the reasoning>`. The register table is the index; the narrative is the content.
 
-  > **A1 · 🔎 sized · owner PM** — Execute prior turns to persist state
-  > → *Resolution:* accepted in principle; sized in the multi-turn epic.
+### Comment structure (every loop comment)
 
-Re-post only the rows that **changed** each round; the **complete register appears once, at the close**, in stacked form. If a cell needs a clause to be understood, that's the signal it belongs in prose, not the table.
+Each comment in the loop is a self-contained, scannable unit:
+
+1. **Header envelope** — three lines up top:
+   > `### <ball emoji> Round N · <FROM> → <TO>`
+   > `**Purpose:** <one line> · **Ball after:** <emoji> <role> · **Open:** <count>`
+   > `*🤖 via `<skill-name>` · <attribution>*`
+
+   The ball emoji is the author's colour — **🟢 FDE**, **🔵 PM**. The `🤖` line is a small italic caption (who/what authored the comment), never the headline.
+2. **Numbered sections** — `## 1 · … ## 2 · …`, so the comment reads as an outline and sections are stable references (`§3`). The **📒 Register is always the last-numbered section**. Standard running order:
+   - **FDE Round 1:** 1 · What I found · 2 · Repro & results · 3 · Root cause · 4 · Asks · 5 · Register
+   - **FDE later rounds:** 1 · Answers · 2 · Record impact · 3 · Register
+   - **PM triage round:** 1 · Triage verdict · 2 · Answers · 3 · New items · 4 · Disposition · 5 · Register
+   - **PM close:** 1 · Decision · 2 · Delivery (Procedure E) · 3 · Closure test · 4 · For CS · 5 · Register
+
+The whole thread also gets a header block so a cold reader orients before any round — see *The thread header*.
+
+### The thread header (issue description)
+
+So a human landing on the issue orients in seconds, the feedback issue's **description** opens with a loop-status block, kept above a `---` divider that preserves the CS intake untouched:
+
+```markdown
+## 🧵 Feedback loop — <short title>
+
+**Customer:** <name> · **Feature:** <family>
+**Status:** <triage loop open | ✅ closed> · disposition <…> · issue in **<state>**
+**Rounds:** <n>
+
+**How to read:** each comment is one round (FDE ⇄ PM); every round is numbered and ends with a **📒 Register** snapshot — the newest register is the live state. Machine records: `feedback_record` (in the linked doc) · `triage_record` (in the close comment).
+
+---
+
+<the original CS intake — never edited>
+```
+
+The **FDE** adds this block when first publishing feedback (via `save_issue` with `description:`, prepending it above the intake); the **PM** refreshes `Status`/`Rounds`/deliverables at disposition and close. **Only ever touch the block above the divider** — the intake below it belongs to CS. This is the one time the loop edits the description; everything else is comments.
 
 ---
 
 ## Round 2 — responding to PM follow-ups
 
-1. When the PM posts follow-up questions (threaded under your summary comment), answer **on the same thread** — `save_comment` with `parentId: <the PM comment's id>` so the round-trip stays one nested conversation. Lead the reply with a one-line state banner (see Conventions & guardrails) and update the register rows in your reply (`F#` → ✅ resolved or 🔴 blocked, as applicable).
+1. When the PM posts follow-up questions (threaded under your summary comment), answer **on the same thread** — `save_comment` with `parentId: <the PM comment's id>` so the round-trip stays one nested conversation. Lead with the header envelope and **end the reply with the full register snapshot** (all items, not just the changed rows), per *Keep the register readable*.
 2. Answer what you can from existing evidence. Questions flagged `(customer-dependent)` require a customer touch — say so, give an ETA, don't guess on the customer's behalf.
 3. **New evidence goes in the doc, not the thread**: append an appendix section to the existing evidence doc (`save_document` with `id:`) and link it from your reply. The thread carries conclusions; the doc carries proof.
 4. Update the doc's `feedback_record` **only if facts changed** (e.g. `repro_status`, `severity`, new `asks`). Answering a question doesn't require a record edit; changing a fact does. Remove resolved entries from `open_questions`.
@@ -200,6 +236,11 @@ Use as the `content` for `save_document`. Delete sections that don't apply; rena
 2. **<Alternative / interim>** — <a lighter mitigation, e.g. a warning or doc>.
 3. **Until then** — <workaround FDEs/SEs or customers can use today>.
 
+| Item | Status | Next |
+|---|---|---|
+| **A1** <primary ask, ≤6 words> | ⏳ open · R1 | PM |
+| **A2** <alternative / interim, ≤6 words> | ⏳ open · R1 | PM |
+
 ## 8. Questions a PM will ask
 <Pre-answer the follow-ups that would otherwise require a meeting. Cover at least:>
 
@@ -240,26 +281,38 @@ Use as the `content` for `save_document`. Delete sections that don't apply; rena
 Use as the `body` for `save_comment`. Keep it short — it's the thread-level hook; the doc is the depth.
 
 ```markdown
-## <headline finding>
+### 🟢 Round 1 · FDE → PM
+**Purpose:** share evidence + asks · **Ball after:** 🔵 PM · **Open:** 3 (A1, A2, Q1)
+*🤖 via `FDE-customer-feedback-linear` · <attribution>*
 
-<1–2 sentences framing, tying to the customer's stated ask (quote the intake if apt).>
+## 1 · What I found
+<1–2 sentences framing, tying to the customer's stated ask (quote the intake if apt). Include the TL;DR and, if apt, "Refines the intake" line.>
 
 **TL;DR:** <the gap in one line.>
 
 **Refines the intake** *(omit if the intake framing holds)*: <one line — what the evidence shows the problem actually is, vs how the intake described it.>
 
+## 2 · Repro & results
 <optional compact results table — the same one from the doc's section 2>
 
-**Product ask** — register rows (terse labels; full ask in prose above), Owner PM, Status ⏳ open until PM triages
-| ID | Item | Owner | Status |
-|---|---|---|---|
-| A1 | <primary ask, ≤6 words> | PM | ⏳ open |
-| A2 | <alternative / interim, ≤6 words> | PM | ⏳ open |
+## 3 · Root cause
+<one line, if known — pointer to the doc's §5 for proof.>
 
-**Open questions for PM** *(omit if none)* — register rows, Owner FDE, Status ⏳ open
-| ID | Item | Owner | Status |
-|---|---|---|---|
-| Q1 | <evidence-limit label, ≤6 words> | FDE | ⏳ open |
+## 4 · Asks
+1. **A1** — <primary ask, one line>
+2. **A2** — <alternative / interim, one line>
+3. **Q1** — <evidence-limit open question, one line>
+
+## 5 · 📒 Register — after Round 1 (FDE)
+**ball: 🔵 PM** · open: 3 (A1, A2, Q1)
+
+| Item | Status | Next |
+|---|---|---|
+| **A1** <primary ask, ≤6 words> | ⏳ open · R1 | PM |
+| **A2** <alternative / interim, ≤6 words> | ⏳ open · R1 | PM |
+| **Q1** <evidence-limit label, ≤6 words> | ⏳ open · R1 | PM |
+
+*bold ID = changed this round · Next: name owes the move / ✓ done / → AFP-## / → roadmap · tokens: ⏳ open · 📋 accepted · 🔎 to size · 🔴 blocked · ✅ resolved · ❌ declined*
 
 **Full write-up (inline document on this issue, no download needed)**
 - 📄 [<doc title>](<doc url>) — <one line on what's inside; includes pre-answered PM questions + a machine-readable feedback record>
@@ -325,11 +378,11 @@ Live session — a `VARIABLE_UPDATE_STEP` fired on the verify turn:
 
 **7. Recommendation / product ask** *(full asks are in §4/§6 above and in the machine record below; register carries the labels)*
 
-| ID | Item | Owner | Status |
-|---|---|---|---|
-| A1 | Execute prior turns to persist state | PM | ⏳ open |
-| A2 | Warn when a value isn't in the transcript | PM | ⏳ open |
-| A3 | Document the state-replay limitation | PM | ⏳ open |
+| Item | Status | Next |
+|---|---|---|
+| **A1** Execute prior turns to persist state | ⏳ open · R1 | PM |
+| **A2** Warn when a value isn't in the transcript | ⏳ open · R1 | PM |
+| **A3** Document the state-replay limitation | ⏳ open · R1 | PM |
 
 **8. Questions a PM will ask**
 
@@ -344,9 +397,9 @@ Live session — a `VARIABLE_UPDATE_STEP` fired on the verify turn:
 
 **Open questions (couldn't answer from evidence):**
 
-| ID | Item | Owner | Status |
-|---|---|---|---|
-| Q1 | Not yet re-run on voice channel | FDE | ⏳ open |
+| Item | Status | Next |
+|---|---|---|
+| **Q1** Not yet re-run on voice channel | ⏳ open · R1 | PM |
 
 **9. Appendix** — session IDs, the exact `sf agent preview`/`sf agent test` invocations, and the Data Cloud SQL, with raw JSON in `<details>` blocks.
 
@@ -376,19 +429,42 @@ notes: S1/S3 "passes" are false confidence — they re-derive state from credent
 
 ### → The summary comment (posted with `save_comment`, `issueId: AFP-###`)
 
-> ## Testing Center reports FAILURE on a case that works live
+> ### 🟢 Round 1 · FDE → PM
+> **Purpose:** share evidence + asks · **Ball after:** 🔵 PM · **Open:** 4 (A1, A2, A3, Q1)
+> *🤖 via `FDE-customer-feedback-linear` · prepared from a live investigation*
 >
+> ## 1 · What I found
 > Reproduced the multi-turn state gap on a live agent and captured the root cause from the Data Cloud runtime trace.
 >
 > **TL;DR:** Testing Center runs only the final turn live and rebuilds context from the history *text*; any value that existed only as a prior action output (here, the verified name) is lost, so a correct agent looks broken.
 >
 > **Refines the intake:** the intake reads as an agent defect ("agent forgets/loses context mid-conversation"); the evidence shows it's a testing-tool limitation — Testing Center replays prior turns as text rather than executing them, not an agent defect.
 >
+> ## 2 · Repro & results
 > | Scenario | Live | Testing Center | Match |
 > |---|---|---|---|
 > | S2 name recall | "Jane Smith" | "cannot provide the full name" (FAILURE) | ❌ |
 >
-> **Ask:** persist action-output state across turns, or warn when a case depends on a value not in the transcript.
+> ## 3 · Root cause
+> Testing Center executes only the final turn; prior turns are replayed as static history text, so a prior action's output is never re-created as state. See the doc's §6 for the Data Cloud trace proof.
+>
+> ## 4 · Asks
+> 1. **A1** — Persist action-output state across turns by executing prior turns.
+> 2. **A2** — Warn when a case depends on a value not present in the transcript.
+> 3. **A3** — Document the state-replay limitation so users can anticipate it.
+> 4. **Q1** — Not yet re-run on the customer's voice channel (reproduced on chat only).
+>
+> ## 5 · 📒 Register — after Round 1 (FDE)
+> **ball: 🔵 PM** · open: 4 (A1, A2, A3, Q1)
+>
+> | Item | Status | Next |
+> |---|---|---|
+> | **A1** Execute prior turns to persist state | ⏳ open · R1 | PM |
+> | **A2** Warn when a value isn't in the transcript | ⏳ open · R1 | PM |
+> | **A3** Document the state-replay limitation | ⏳ open · R1 | PM |
+> | **Q1** Not yet re-run on voice channel | ⏳ open · R1 | PM |
+>
+> *bold ID = changed this round · Next: name owes the move / ✓ done / → AFP-## / → roadmap · tokens: ⏳ open · 📋 accepted · 🔎 to size · 🔴 blocked · ✅ resolved · ❌ declined*
 >
 > **Full write-up (inline doc, no download):** 📄 [Multi-turn testing gap — evidence pack](<doc url>)
 

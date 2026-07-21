@@ -9,7 +9,9 @@ Two Claude Code skills that close the loop on **Agentforce customer feedback via
 
 The two sides meet on a shared contract: every evidence doc ends with a fenced `feedback_record: v1` YAML block (fixed vocabulary for `gap_type`, `severity`, `customer_impact`, `repro_status`), **and** every triage disposition ends with a fenced `triage_record: v1` YAML block (disposition, accepted/declined asks, owner, loop status) — both defined in the respective SKILL.md files. Human-readable narrative for people; parseable record for agents. Stable item IDs (`A#`/`Q#`/`F#`/`P#`) are the join key between the human-readable **register** (the ask/answer ledger in comments) and the machine records — the same `A1` appears in both.
 
-Registers in comments stay terse — labels, not sentences (see each SKILL.md); the machine records carry the full text.
+Registers in comments are a compact **3-column rolling snapshot** (`Item · Status · Next`) — the ID is a bold prefix, the round folds into Status, and every round comment ends with the full register, so the newest comment is always the live state. Labels, not sentences; the machine records carry the full text.
+
+**Reading a thread.** Each issue's description opens with a 🧵 loop-status header (above a divider preserving the CS intake); each comment leads with a round envelope (round · direction · purpose · ball · open), uses numbered sections, and ends with the 📒 register snapshot.
 
 ```mermaid
 flowchart LR

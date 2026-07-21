@@ -85,41 +85,76 @@ notes: <optional nuance>
 
 ### The register (ask/answer ledger)
 
-Every **item** in the loop — an ask, a question, a follow-up, a decision — lives in a **register table with a stable ID and a status token**, never as a loose bullet. Prose is for rationale *around* the register. The same table shape runs from the first ask to the close, and the **closing comment carries the complete register** so the outcome reads in one scan.
+Every **item** in the loop — an ask, a question, a follow-up, a decision — has a stable **ID** and a **status token**, and lives in a compact **register table**, never as a loose bullet. Prose around the table carries the reasoning. Every round comment ends with the register (see *Keep the register readable*).
 
-| ID | Item | Owner | Status | Resolution |
-|---|---|---|---|---|
-| A1 | \<the item, one line\> | PM | ⏳ open | — |
+| Item | Status | Next |
+|---|---|---|
+| **A1** Execute prior turns to persist state | ⏳ open · R1 | PM |
 
-**Status tokens:** ⏳ open · 📋 accepted · 🔎 sized (accepted in principle, lives in an epic) · 🔴 blocked (needs customer / external input) · ✅ resolved · ❌ declined (reason in prose)
+- **Item** — the ID as a **bold prefix**, then a ≤6-word label (`**A1** Execute prior turns…`). Bold the ID **only in the round that item changed** — an at-a-glance delta marker; leave it unbolded in later rounds where it's unchanged.
+- **Status** — the token, then the round it last changed (`⏳ open · R1`).
+- **Next** — what happens next for this item, never blank: a **name** (`PM` / `FDE` / `FDE (customer)`) when someone owes the move · `✓ done` when resolved · `→ AFP-##` once it's tracked in delivery · `→ roadmap` when accepted but delivery isn't spun up yet.
+
+**Status tokens:** ⏳ open · 📋 accepted · 🔎 to size *(accepted in principle, **sizing still pending** — see the guardrail: never let a token claim a step that hasn't happened)* · 🔴 blocked *(needs customer / external input)* · ✅ resolved · ❌ declined *(reason in prose)*
 
 **ID prefixes:** `A#` = FDE ask · `Q#` = FDE evidence-limit question (about the boundary of the FDE's own investigation) · `F#` = PM follow-up to the FDE · `P#` = PM-owned triage action (e.g. a telemetry pull)
 
-IDs are also the join key to the machine records: an `A1` in the register is the same `A1` referenced in `feedback_record`/`triage_record`.
+IDs are the join key to the machine records: an `A1` in the register is the same `A1` referenced in `feedback_record`/`triage_record`.
 
-#### Keep the register readable
+#### Keep the register readable — the rolling snapshot
 
-The register is an **index, not the content** — every cell is a short **label (≤ ~6 words)**, never a sentence. The full ask, answer, and rationale live in the prose around the table. Two layouts, by round:
+**Every round comment ends with the full register** — all items so far, in the 3-column table above — as its last-numbered section (`## N · 📒 Register — after Round N (<side>)`). Because a Linear thread reads top-down, **the newest comment's register is always the live state** — there's no separate ledger comment to maintain, and each round's snapshot is a frozen audit record. Don't post delta-only registers, and don't keep a standalone "current state" comment at the end of the thread.
 
-- **Posing a round** (asks/questions, no answers yet): a terse **4-column** table — omit `Resolution` entirely until answers exist:
+Above the table, a one-line **hand-off header**: `**ball: 🔵 PM** · open: 2 (F1, F2)` — *ball* is the side that owes the next move (🟢 FDE, 🔵 PM); list PM-only self-owned items (e.g. a telemetry pull) separately as `+1 PM-side`. Below the table, one italic **legend** line (bold-ID = changed; the Next glyphs; the token set).
 
-  | ID | Item | Owner | Status |
-  |---|---|---|---|
-  | A1 | Execute prior turns to persist state | PM | ⏳ open |
+**Three columns, no more.** Markdown has no column-width syntax, and Linear splits table width **evenly by column count** — so every extra column starves the Item text (a 5-column register shreds the description into 3 lines). Keep the register to `Item · Status · Next`; never add `Owner`/`Since`/`ID` back as their own columns. Keep each Item label ≤~6 words; if a cell needs a clause to be understood, that clause belongs in the prose, not the table.
 
-- **Answering / closing** (resolutions carry reasoning): use **stacked entries**, one per item, so each gets full comment width:
+**Rationale lives in prose, not the table.** Asks and answers with their reasoning go in the numbered narrative sections as **stacked blockquote entries** — `> **A1 · 🔎 to size** — <label>` then `> → <the reasoning>`. The register table is the index; the narrative is the content.
 
-  > **A1 · 🔎 sized · owner PM** — Execute prior turns to persist state
-  > → *Resolution:* accepted in principle; sized in the multi-turn epic.
+### Comment structure (every loop comment)
 
-Re-post only the rows that **changed** each round; the **complete register appears once, at the close**, in stacked form. If a cell needs a clause to be understood, that's the signal it belongs in prose, not the table.
+Each comment in the loop is a self-contained, scannable unit:
+
+1. **Header envelope** — three lines up top:
+   > `### <ball emoji> Round N · <FROM> → <TO>`
+   > `**Purpose:** <one line> · **Ball after:** <emoji> <role> · **Open:** <count>`
+   > `*🤖 via `<skill-name>` · <attribution>*`
+
+   The ball emoji is the author's colour — **🟢 FDE**, **🔵 PM**. The `🤖` line is a small italic caption (who/what authored the comment), never the headline.
+2. **Numbered sections** — `## 1 · … ## 2 · …`, so the comment reads as an outline and sections are stable references (`§3`). The **📒 Register is always the last-numbered section**. Standard running order:
+   - **FDE Round 1:** 1 · What I found · 2 · Repro & results · 3 · Root cause · 4 · Asks · 5 · Register
+   - **FDE later rounds:** 1 · Answers · 2 · Record impact · 3 · Register
+   - **PM triage round:** 1 · Triage verdict · 2 · Answers · 3 · New items · 4 · Disposition · 5 · Register
+   - **PM close:** 1 · Decision · 2 · Delivery (Procedure E) · 3 · Closure test · 4 · For CS · 5 · Register
+
+The whole thread also gets a header block so a cold reader orients before any round — see *The thread header*.
+
+### The thread header (issue description)
+
+So a human landing on the issue orients in seconds, the feedback issue's **description** opens with a loop-status block, kept above a `---` divider that preserves the CS intake untouched:
+
+```markdown
+## 🧵 Feedback loop — <short title>
+
+**Customer:** <name> · **Feature:** <family>
+**Status:** <triage loop open | ✅ closed> · disposition <…> · issue in **<state>**
+**Rounds:** <n>
+
+**How to read:** each comment is one round (FDE ⇄ PM); every round is numbered and ends with a **📒 Register** snapshot — the newest register is the live state. Machine records: `feedback_record` (in the linked doc) · `triage_record` (in the close comment).
+
+---
+
+<the original CS intake — never edited>
+```
+
+The **FDE** adds this block when first publishing feedback (via `save_issue` with `description:`, prepending it above the intake); the **PM** refreshes `Status`/`Rounds`/deliverables at disposition and close. **Only ever touch the block above the divider** — the intake below it belongs to CS. This is the one time the loop edits the description; everything else is comments.
 
 ### A. Understand one feedback item
 1. `get_issue AFP-###` — read the intake description and note the customer/feature fields.
 2. `list_comments` on the issue — find the summary comment and any thread discussion since.
 3. The issue's `documents` list names its evidence docs — `get_document` each; read TL;DR → verdict → root cause → asks → PM-questions section → the record block.
 4. Answer the PM's question **with citations**: issue ID, doc title + URL, and section. Distinguish FDE-asserted facts from your inferences.
-5. If the PM has follow-ups the doc doesn't answer: check the doc's *open questions* first (the FDE may have flagged exactly that), then draft the questions **as register rows** (`F#`, Owner = FDE or customer, Status ⏳ open or 🔴 blocked if customer-dependent) — not loose bullets — and, on the PM's confirmation, post them as a `save_comment` on the issue thread.
+5. If the PM has follow-ups the doc doesn't answer: check the doc's *open questions* first (the FDE may have flagged exactly that), then draft the questions as `F#` items (Next = FDE, or FDE (customer) if customer-dependent) — not loose bullets. They appear as rows in the **trailing register snapshot** of the round comment (posted per *Comment structure*), plus stacked blockquote entries in the narrative for the reasoning, and, on the PM's confirmation, post them as a `save_comment` on the issue thread.
 6. **Prevalence is a PM question.** When triaging, raise blast-radius / prevalence questions yourself as `P#` register items (e.g. "pull telemetry on how many suites are affected") — do not expect the FDE to supply prevalence; the FDE only has their one case.
 
 ### B. Aggregate across many items
@@ -130,7 +165,7 @@ Re-post only the rows that **changed** each round; the **complete register appea
 5. Collect every record's `open_questions` into a "needs FDE input" list; offer to post each back to its issue thread as a comment.
 
 ### C. Close the loop asynchronously
-- Post PM follow-ups as register rows (`F#`, Status ⏳ open) in a comment on the specific issue (`save_comment` with `issueId`) — the FDE answers on the thread by updating the row's status.
+- Post PM follow-ups as `F#` items (Status ⏳ open) in a comment on the specific issue (`save_comment` with `issueId`) — they appear as rows in the comment's trailing register snapshot, with the reasoning as stacked blockquote entries in the narrative above it. The FDE answers on the thread by updating the row's status in their reply's own snapshot.
 - If the PM disposition is "accepted / roadmap / duplicate-of-X / needs-more-evidence", offer to post that as a comment too, so the FDE isn't left waiting.
 
 ### D. Record the decision on the issue
@@ -167,7 +202,7 @@ A `planned`/`shipped` disposition is a decision, not a delivery. The loop only t
 
 ## Rollup document template
 
-Per-item registers posted in issue comments follow CANON D (labels, not sentences) — see *Keep the register readable* above. The rollup below is a different artifact (a cross-issue index for a PM audience), and its columns may stay tabular.
+Per-item registers posted in issue comments follow the rolling-snapshot conventions (labels, not sentences) — see *Keep the register readable* above. The rollup below is a different artifact (a cross-issue index for a PM audience), and its columns may stay tabular.
 
 ```markdown
 > **Feedback rollup** — <scope: time window / feature / team> · generated <date> · <N> items reviewed
@@ -211,6 +246,7 @@ Per-item registers posted in issue comments follow CANON D (labels, not sentence
 - **Every hand-off names an owner.** Follow-up questions posted to the thread must say who owes the answer (`loop_status: open-with-FDE` / `open-with-customer`); a question that requires customer input must be flagged `(customer-dependent)` so the FDE knows to schedule a customer touch rather than answer from the desk.
 - **Prevalence is yours.** How-many-customers / how-widespread questions are PM triage actions (`P#`), never FDE asks — the FDE sees one customer.
 - **Never invent specifics.** Don't manufacture customer detail, quantified impact, or telemetry to make a triage look complete. If a number isn't known, say so and make obtaining it a `P#` action. Any illustrative/simulated value must be labelled — and preferred qualitative over a fake-precise figure.
+- **A token must not claim a step that hasn't happened.** `🔎 to size` means accepted-in-principle with sizing pending, not estimated; don't upgrade an item's token past its real state.
 
 ## Worked example
 
@@ -220,29 +256,49 @@ Two filled instances to imitate — a single-item triage, and the cross-feature 
 
 **Scenario:** the PM asks their agent *"What's AFP-### about, and draft my disposition."* The agent reads the intake → summary comment → evidence doc → parses the `feedback_record`. (Same demo item as the FDE skill's worked example — a multi-turn Testing Center gap, customer `internal-demo` — so the two examples visibly connect as one loop.)
 
-**Triage verdict**
-
-| Dimension | Verdict |
-|---|---|
-| Classification | `limitation` — agree with the FDE, not a bug |
-| Severity | `workaround-exists` — but the workaround (manual `sf agent preview` runs) isn't CI-viable |
-| Impact | `confidence-loss, productivity-loss` |
-| Repro | `reproduced-live`, root cause proven via the Data Cloud trace — evidence quality high, no further validation needed |
-
-**Register**
-
-> **A1 · 🔎 sized · owner PM** — Execute prior turns to persist state (execution-model fix)
-> → *Resolution:* Routed to the multi-turn testing epic — the real fix, but heavier.
+> ### 🔵 Round 1 · PM → FDE
+> **Purpose:** triage verdict + disposition · **Ball after:** 🟢 FDE · **Open:** 1 (A2) + 1 PM-side
+> *🤖 via `PM-feedback-triage-linear` · triage of AFP-###*
 >
-> **A2 · 📋 accepted · owner PM** — Warn when a value isn't in the transcript
-> → *Resolution:* Ships fastest — detectable at authoring time.
+> ## 1 · Triage verdict
 >
-> **A3 · ✅ resolved · owner PM** — Document the state-replay limitation
-> → *Resolution:* Immediate; ships alongside A2.
+> | Dimension | Verdict |
+> |---|---|
+> | Classification | `limitation` — agree with the FDE, not a bug |
+> | Severity | `workaround-exists` — but the workaround (manual `sf agent preview` runs) isn't CI-viable |
+> | Impact | `confidence-loss, productivity-loss` |
+> | Repro | `reproduced-live`, root cause proven via the Data Cloud trace — evidence quality high, no further validation needed |
 >
-> **P1 · ⏳ open · owner PM** — Pull telemetry on affected multi-turn suites
-
-**Disposition:** Accepted, per the register above. A1 is the real fix but heavier, so it's routed to the epic rather than blocking the near-term ship; A2 and A3 ship together now. P1 (prevalence) is the PM's own action, not a question for the FDE.
+> ## 2 · Answers
+>
+> **A1 · 🔎 to size** — Execute prior turns to persist state (execution-model fix)
+> → accepted in principle; routed to the epic — **sizing pending** (not yet estimated).
+>
+> **A2 · 📋 accepted** — Warn when a value isn't in the transcript
+> → Ships fastest — detectable at authoring time.
+>
+> **A3 · 📋 accepted** — Document the state-replay limitation
+> → Ships alongside A2.
+>
+> ## 3 · New items
+>
+> **P1 · ⏳ open** — Pull telemetry on affected multi-turn suites
+> → PM-owned prevalence check; not a question for the FDE.
+>
+> ## 4 · Disposition
+> Accepted, per the register above. A1 is the real fix but heavier, so it's routed to the epic rather than blocking the near-term ship; A2 and A3 ship together now. P1 (prevalence) is the PM's own action, not a question for the FDE.
+>
+> ## 5 · 📒 Register — after Round 1 (PM)
+> **ball: 🟢 FDE** · open: 1 (A2) + 1 PM-side
+>
+> | Item | Status | Next |
+> |---|---|---|
+> | **A1** Execute prior turns to persist state | 🔎 to size · R1 | → roadmap |
+> | **A2** Warn when a value isn't in the transcript | 📋 accepted · R1 | FDE |
+> | **A3** Document the state-replay limitation | 📋 accepted · R1 | → roadmap |
+> | **P1** Pull telemetry on affected multi-turn suites | ⏳ open · R1 | PM |
+>
+> *bold ID = changed this round · Next: name owes the move / ✓ done / → AFP-## / → roadmap · tokens: ⏳ open · 📋 accepted · 🔎 to size · 🔴 blocked · ✅ resolved · ❌ declined*
 
 ```yaml
 triage_record: v1
@@ -257,7 +313,7 @@ owner: FDE
 next_action: FDE confirms the warning (A2) is feasible at authoring time; PM runs the P1 telemetry pull separately
 loop_status: open-with-FDE
 decided_date: 2026-07-20
-notes: Execution-model ask (A1) accepted in principle; sized separately in the epic, not blocking the near-term ship. A material share of multi-turn suites likely depend on prior-turn action outputs; exact count pending the P1 telemetry pull — no hard number yet.
+notes: Execution-model ask (A1) accepted in principle; routed to epic, sizing pending — not blocking the near-term ship. A material share of multi-turn suites likely depend on prior-turn action outputs; exact count pending the P1 telemetry pull — no hard number yet.
 ```
 
 On the PM's confirmation, the agent applied the disposition to `AFP-###` itself per Procedure D: `state` → Todo (per the disposition→state mapping, `planned` → Todo), `priority` raised, label `testing-center` added, and `assignee` set to the FDE — the current owner of A2's next action.
