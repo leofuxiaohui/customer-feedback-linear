@@ -54,7 +54,7 @@ Feedback issues (`AFP-*`) live in the **`eventsmobileapp`** workspace, team **"A
 - **Frame as a design gap / feature request with concrete asks**, not just "it's broken." Give the primary ask, an alternative/interim mitigation, and a documentation/workaround note.
 - **Sanitize before posting.** Use mock/sample data; scrub org IDs, customer PII, tokens, and internal endpoints. State explicitly when data shown is mock.
 - **Retiring a doc:** the Linear MCP has **no delete/archive-document tool**. To retire a doc, rename it to a `↪ Merged — archive me` stub whose body links the surviving doc, and ask the user to archive it in-app (hover the doc → ⋯ → **Archive**).
-- **Markdown, not HTML.** Linear renders markdown tables, code fences, blockquotes, and `<details>` — use those. It will not render an HTML file inline.
+- **Markdown, not HTML.** Linear renders markdown tables, code fences, blockquotes, and bulleted lists in both docs and comments; it will not render an HTML file inline. **`<details>`/`<summary>` collapsibles render only in Documents, *not* in comments** — use them to fold raw data in the evidence doc, but never in a thread comment. Comment reasoning uses blockquote cards with bulleted `why` blocks instead — see *Comment cards*.
 - **Every hand-off names an owner.** When you post open questions for the PM, say explicitly the ball is with the PM. When answering PM follow-ups, flag any question that needs *customer* input as `(customer-dependent)` — it can't be answered from the desk, and the thread should show that the delay is a customer touch, not FDE silence.
 - **Never invent specifics.** Don't fabricate customer detail, channel mechanics, or quantified impact to fill the template. You have one customer's evidence — stay inside it. Mark any illustrative/simulated value explicitly, and prefer "not quantified" over a fake-precise number.
 - **Lead each loop comment with the header envelope** (round · direction · purpose · ball · open) and **end it with the 📒 register snapshot** — see *Comment structure* and *Keep the register readable*.
@@ -85,11 +85,74 @@ IDs are the join key to the machine records: an `A1` in the register is the same
 
 **Every round comment ends with the full register** — all items so far, in the 3-column table above — as its last-numbered section (`## N · 📒 Register — after Round N (<side>)`). Because a Linear thread reads top-down, **the newest comment's register is always the live state** — there's no separate ledger comment to maintain, and each round's snapshot is a frozen audit record. Don't post delta-only registers, and don't keep a standalone "current state" comment at the end of the thread.
 
-Above the table, a one-line **hand-off header**: `**ball: 🔵 PM** · open: 2 (F1, F2)` — *ball* is the side that owes the next move (🟢 FDE, 🔵 PM); list PM-only self-owned items (e.g. a telemetry pull) separately as `+1 PM-side`. Below the table, one italic **legend** line (bold-ID = changed; the Next glyphs; the token set).
+Above the table, a one-line **hand-off header**: `**ball: 🔵 PM** · open: 2 (F1, F2)` — *ball* is the side that owes the next move (🟢 FDE, 🔵 PM); list PM-only self-owned items (e.g. a telemetry pull) separately as `+1 PM-side`. Below the table, two things: a one-line **Reading it** guide, then a **Status legend** with one token per line and its meaning, so a cold reader needs nothing else:
+
+*Reading it: **bold ID** = changed this round · **Next** = a name (whose move) / ✓ done (resolved) / → AFP-## (tracked in delivery) / → roadmap (accepted, delivery spun up at close) · IDs join `feedback_record` / `triage_record`.*
+
+**Status legend**
+- ⏳ **open** — awaiting a decision; the ball is with whoever's named in **Next**.
+- 📋 **accepted** — committed as a near-term deliverable (scoped small enough to schedule now).
+- 🔎 **to size** — accepted in principle and *will* be built, but not yet scheduled or estimated; sits in the epic backlog until it gets a size.
+- 🔴 **blocked** — can't proceed without external / customer input (named on the item).
+- ✅ **resolved** — answered or closed from evidence or mechanism; no further action.
+- ❌ **declined** — not being pursued; the reason is in the item's *why*.
 
 **Three columns, no more.** Markdown has no column-width syntax, and Linear splits table width **evenly by column count** — so every extra column starves the Item text (a 5-column register shreds the description into 3 lines). Keep the register to `Item · Status · Next`; never add `Owner`/`Since`/`ID` back as their own columns. Keep each Item label ≤~6 words; if a cell needs a clause to be understood, that clause belongs in the prose, not the table.
 
-**Rationale lives in prose, not the table.** Asks and answers with their reasoning go in the numbered narrative sections as **stacked blockquote entries** — `> **A1 · 🔎 to size** — <label>` then `> → <the reasoning>`. The register table is the index; the narrative is the content.
+**Rationale lives in prose, not the table.** The register is the index; the **item cards** in the numbered sections are the content — each ask/answer/question is a **blockquote card** laid out **Ask → (decision) → Why**, per *Comment cards* below.
+
+### Comment cards — Ask → Why
+
+Inside a round's item sections, each item is a **blockquote card**, never a bare list row. It reads top-down and ends in a **bulleted `why`** so a human can audit the call and keep or override it.
+
+**FDE ask** — asker's side, no decision yet:
+
+> **A1 · Ask:** <the ask, one line>
+> → <one-line framing: weight / role among the asks>
+>
+> *why —*
+> - **From evidence:** <the chain from the evidence to this ask>
+> - **Why A1 and A2/A3:** <relation to the other asks — layered fallbacks, not duplicates>
+> - **Grounded in:** <the proof — say **direct evidence** vs **inference** explicitly>
+> - **Confidence:** <high/low, and on what>
+> - **Would soften if:** <the condition that would change it>
+
+**PM answer** — decider's side, restate the ask then decide:
+
+> **A1 · Ask:** <restate the FDE's ask, one line>
+> **Proposed decision:** <token> <label> — <one-line reason>
+>
+> *why —*
+> - **What "<token>" commits to:** <esp. for 🔎 to size — what it does and doesn't promise>
+> - **Over the alternatives:** <accept-now ✗ · decline ✗ · chosen ✓ — why this over those>
+> - **Grounded in:** <proof vs inference>
+> - **Confidence:** <…>
+> - **Would flip to <other decision> if:** <the trigger>
+
+**Question** — a Q# (FDE evidence-limit), F# (PM follow-up), or P# (PM action) has no decision:
+
+> **F1 · ⏳ open · Next: FDE** — <the question>
+> → <one line: what the answer decides>
+>
+> *why it matters —*
+> - <what hinges on the answer>
+> - **Grounded vs inferred:** <mark what's proven vs assumed>
+> - <who can answer, and why it's theirs>
+
+**Card rules:**
+- **Grounded vs inferred is mandatory** wherever a claim could be either — a human overrides an *inference* readily but hesitates on a *proven* fact, so the reasoning must say which. (This is the anti-fabrication guardrail applied to reasoning.)
+- **Bulleted lists render inside blockquote comment cards** (`> - item`) — use them for the `why`. **`<details>`/`<summary>` do NOT render in Linear comments** — never put a collapsible in a comment (it shows as raw tags; collapsibles render only in Documents).
+- **State the proposal/override note once per section, not per item** — see below.
+
+### The proposal & override note (once per section)
+
+Every item in an asks/answers/new-items section is the **agent's proposal**; the human keeps it by posting and can override later. State this **once**, in the section's intro line, prefixed with 🤖:
+
+- **FDE asks:** `🤖 *Every item below is the **agent's proposal** — the FDE can **override** any of them; an item shows an override note only once that happens.* Each is laid out **Ask → Why**, with the reasoning bulleted.`
+- **PM answers:** `🤖 *Every decision below is the **agent's proposal** — the PM can **override** any of them; an item shows an override note only once that happens.* Each is laid out **Ask → Proposed decision → Why**, with the reasoning bulleted.`
+- **PM new items:** `🤖 *Items the triage opened — follow-up questions to the FDE (**F#**) and a PM-owned action (**P#**); agent-proposed, the PM can drop or reword any.* Each is laid out **Question → Why**, with the reasoning bulleted.`
+
+Never repeat a per-item "proposed · keep · override?" marker on every card — it's noise. A marker appears on an individual item **only when a human actually overrides it** (that item then carries `✏️ overridden by <name>: <new call>`, and the change appears as the next register snapshot — never a silent edit).
 
 ### Comment structure (every loop comment)
 
@@ -102,9 +165,9 @@ Each comment in the loop is a self-contained, scannable unit:
 
    The ball emoji is the author's colour — **🟢 FDE**, **🔵 PM**. The `🤖` line is a small italic caption (who/what authored the comment), never the headline.
 2. **Numbered sections** — `## 1 · … ## 2 · …`, so the comment reads as an outline and sections are stable references (`§3`). The **📒 Register is always the last-numbered section**. Standard running order:
-   - **FDE Round 1:** 1 · What I found · 2 · Repro & results · 3 · Root cause · 4 · Asks · 5 · Register
+   - **FDE Round 1:** 1 · What I found · 2 · Repro & results · 3 · Root cause · 4 · Asks & Questions · 5 · Register
    - **FDE later rounds:** 1 · Answers · 2 · Record impact · 3 · Register
-   - **PM triage round:** 1 · Triage verdict · 2 · Answers · 3 · New items · 4 · Disposition · 5 · Register
+   - **PM triage round:** 1 · Triage verdict · 2 · Answers · 3 · New items opened this round · 4 · Disposition · 5 · Register
    - **PM close:** 1 · Decision · 2 · Delivery (Procedure E) · 3 · Closure test · 4 · For CS · 5 · Register
 
 The whole thread also gets a header block so a cold reader orients before any round — see *The thread header*.
@@ -298,10 +361,35 @@ Use as the `body` for `save_comment`. Keep it short — it's the thread-level ho
 ## 3 · Root cause
 <one line, if known — pointer to the doc's §5 for proof.>
 
-## 4 · Asks
-1. **A1** — <primary ask, one line>
-2. **A2** — <alternative / interim, one line>
-3. **Q1** — <evidence-limit open question, one line>
+## 4 · Asks & Questions
+
+🤖 *Every item below is the **agent's proposal** — the FDE can **override** any of them; an item shows an override note only once that happens.* Each is laid out **Ask → Why**, with the reasoning bulleted.
+
+> **A1 · Ask:** <primary ask, one line>
+> → <one-line framing: weight / role>
+>
+> *why —*
+> - **From evidence:** <chain from evidence to the ask>
+> - **Why A1 and A2/A3:** <relation to the other asks>
+> - **Grounded in:** <proof — direct evidence vs inference>
+> - **Confidence:** <…>
+> - **Would soften if:** <condition>
+
+> **A2 · Ask:** <alternative / interim, one line>
+> → <framing>
+>
+> *why —*
+> - **From evidence:** <…>
+> - **Layer:** <the near-term mitigation role>
+> - **Grounded in:** <…>
+> - **Confidence:** <…>
+
+> **Q1 · Question** *(evidence limit)***:** <what your investigation didn't cover>
+> → <one line: flag if it matters before roadmap>
+>
+> *why —*
+> - **Grounded vs inferred:** <what's proven vs assumed about the boundary>
+> - **Would convert to a task if:** <the trigger>
 
 ## 5 · 📒 Register — after Round 1 (FDE)
 **ball: 🔵 PM** · open: 3 (A1, A2, Q1)
@@ -312,7 +400,15 @@ Use as the `body` for `save_comment`. Keep it short — it's the thread-level ho
 | **A2** <alternative / interim, ≤6 words> | ⏳ open · R1 | PM |
 | **Q1** <evidence-limit label, ≤6 words> | ⏳ open · R1 | PM |
 
-*bold ID = changed this round · Next: name owes the move / ✓ done / → AFP-## / → roadmap · tokens: ⏳ open · 📋 accepted · 🔎 to size · 🔴 blocked · ✅ resolved · ❌ declined*
+*Reading it: **bold ID** = changed this round · **Next** = a name (whose move) / ✓ done (resolved) / → AFP-## (tracked in delivery) · IDs join the `feedback_record` in the doc.*
+
+**Status legend**
+- ⏳ **open** — awaiting a decision; the ball is with whoever's named in **Next**.
+- 📋 **accepted** — committed as a near-term deliverable.
+- 🔎 **to size** — accepted in principle and will be built, but not yet scheduled or estimated.
+- 🔴 **blocked** — can't proceed without external / customer input.
+- ✅ **resolved** — answered or closed; no further action.
+- ❌ **declined** — not being pursued; reason in the item's *why*.
 
 **Full write-up (inline document on this issue, no download needed)**
 - 📄 [<doc title>](<doc url>) — <one line on what's inside; includes pre-answered PM questions + a machine-readable feedback record>
@@ -430,7 +526,7 @@ notes: S1/S3 "passes" are false confidence — they re-derive state from credent
 ### → The summary comment (posted with `save_comment`, `issueId: AFP-###`)
 
 > ### 🟢 Round 1 · FDE → PM
-> **Purpose:** share evidence + asks · **Ball after:** 🔵 PM · **Open:** 4 (A1, A2, A3, Q1)
+> **Purpose:** empirical proof of the gap + 3 asks (A1–A3) · **Ball after:** 🔵 PM · **Open:** 4 (A1–A3, Q1)
 > *🤖 via `FDE-customer-feedback-linear` · prepared from a live investigation*
 >
 > ## 1 · What I found
@@ -438,7 +534,7 @@ notes: S1/S3 "passes" are false confidence — they re-derive state from credent
 >
 > **TL;DR:** Testing Center runs only the final turn live and rebuilds context from the history *text*; any value that existed only as a prior action output (here, the verified name) is lost, so a correct agent looks broken.
 >
-> **Refines the intake:** the intake reads as an agent defect ("agent forgets/loses context mid-conversation"); the evidence shows it's a testing-tool limitation — Testing Center replays prior turns as text rather than executing them, not an agent defect.
+> **Refines the intake:** the intake reads as an agent defect ("agent forgets context mid-conversation"); the evidence shows it's a testing-tool limitation — Testing Center replays prior turns as text rather than executing them.
 >
 > ## 2 · Repro & results
 > | Scenario | Live | Testing Center | Match |
@@ -448,25 +544,65 @@ notes: S1/S3 "passes" are false confidence — they re-derive state from credent
 > ## 3 · Root cause
 > Testing Center executes only the final turn; prior turns are replayed as static history text, so a prior action's output is never re-created as state. See the doc's §6 for the Data Cloud trace proof.
 >
-> ## 4 · Asks
-> 1. **A1** — Persist action-output state across turns by executing prior turns.
-> 2. **A2** — Warn when a case depends on a value not present in the transcript.
-> 3. **A3** — Document the state-replay limitation so users can anticipate it.
-> 4. **Q1** — Not yet re-run on the customer's voice channel (reproduced on chat only).
+> ## 4 · Asks & Questions
+>
+> 🤖 *Every item below is the **agent's proposal** — the FDE can **override** any of them; an item shows an override note only once that happens.* Each is laid out **Ask → Why**, with the reasoning bulleted.
+>
+> > **A1 · Ask:** Persist action-output state across turns by *executing* prior turns (not replaying them as text).
+> > → The complete fix; heavy (an execution-model change).
+> >
+> > *why —*
+> > - **From evidence:** the trace shows prior-turn action outputs (the verified name) are dropped, replayed as history text only; the one fix that restores them is executing prior turns.
+> > - **Why A1 and A2/A3:** A1 is complete but heavy; A2 (warn) + A3 (doc) ship without touching the engine — layered fallbacks, not duplicates.
+> > - **Grounded in:** the Data Cloud trace (the 1-vs-0 `VARIABLE_UPDATE_STEP`) — direct evidence, not inference.
+> > - **Confidence:** high on the mechanism, open on feasibility (a platform-team call).
+> > - **Would soften if:** executing prior turns proves infeasible → A1 drops to "warn + document" (A2 + A3 only).
+> >
+> > **A2 · Ask:** Warn when a multi-turn case depends on a value not present in the transcript.
+> > → Near-term; today it silently FAILs and reads as an agent bug.
+> >
+> > *why —*
+> > - **From evidence:** the S2-class case fails silently and looks like an agent defect; a warning turns a silent wrong-answer into a visible one.
+> > - **Layer:** the near-term mitigation — no engine change, so it lands while A1 is sized.
+> > - **Grounded in:** the same trace; detectable at authoring time.
+> > - **Confidence:** high — purely additive.
+> >
+> > **A3 · Ask:** Document that stateful cases only hold when every needed value is in the history text; otherwise validate with live preview.
+> > → Immediate; ships alongside A2.
+> >
+> > *why —*
+> > - **From evidence:** the "passes" (S1/S3) are misleading — they pass only because credentials sat in the transcript.
+> > - **Layer:** zero-cost guidance, the doc half of the A2 warning.
+> > - **Grounded in:** the false-confidence finding (§3).
+> >
+> > **Q1 · Question** *(evidence limit)***:** Reproduced on a chat agent; channel-independent by mechanism, not yet re-run on the customer's voice channel.
+> > → Flag if voice verification matters before roadmap.
+> >
+> > *why —*
+> > - **Grounded vs inferred:** the replay model is identical for chat and voice by construction — an **inference from the mechanism**, not a voice observation.
+> > - **Would convert to a task if:** the PM wants voice confirmation before roadmap.
+>
+> 📄 Full write-up: [Multi-turn testing gap — evidence pack](<doc url>)
 >
 > ## 5 · 📒 Register — after Round 1 (FDE)
-> **ball: 🔵 PM** · open: 4 (A1, A2, A3, Q1)
+> **ball: 🔵 PM** · open: 4 (A1–A3, Q1)
 >
 > | Item | Status | Next |
 > |---|---|---|
 > | **A1** Execute prior turns to persist state | ⏳ open · R1 | PM |
-> | **A2** Warn when a value isn't in the transcript | ⏳ open · R1 | PM |
-> | **A3** Document the state-replay limitation | ⏳ open · R1 | PM |
-> | **Q1** Not yet re-run on voice channel | ⏳ open · R1 | PM |
+> | **A2** Warn on transcript-absent dependency | ⏳ open · R1 | PM |
+> | **A3** Document the replay limitation | ⏳ open · R1 | PM |
+> | **Q1** Voice channel not yet re-run | ⏳ open · R1 | PM |
 >
-> *bold ID = changed this round · Next: name owes the move / ✓ done / → AFP-## / → roadmap · tokens: ⏳ open · 📋 accepted · 🔎 to size · 🔴 blocked · ✅ resolved · ❌ declined*
+> *Reading it: **bold ID** = changed this round · **Next** = a name (whose move) / ✓ done (resolved) / → AFP-## (tracked in delivery) · IDs join the `feedback_record` in the doc.*
 >
-> **Full write-up (inline doc, no download):** 📄 [Multi-turn testing gap — evidence pack](<doc url>)
+> **Status legend**
+> - ⏳ **open** — awaiting a decision; the ball is with whoever's named in **Next**.
+> - 📋 **accepted** — committed as a near-term deliverable.
+> - 🔎 **to size** — accepted in principle and will be built, but not yet scheduled or estimated.
+> - 🔴 **blocked** — can't proceed without external / customer input.
+> - ✅ **resolved** — answered or closed; no further action.
+> - ❌ **declined** — not being pursued; reason in the item's *why*.
 
 ### How an FDE/SE drives this with their coding agent
 

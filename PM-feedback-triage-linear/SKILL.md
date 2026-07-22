@@ -105,11 +105,74 @@ IDs are the join key to the machine records: an `A1` in the register is the same
 
 **Every round comment ends with the full register** — all items so far, in the 3-column table above — as its last-numbered section (`## N · 📒 Register — after Round N (<side>)`). Because a Linear thread reads top-down, **the newest comment's register is always the live state** — there's no separate ledger comment to maintain, and each round's snapshot is a frozen audit record. Don't post delta-only registers, and don't keep a standalone "current state" comment at the end of the thread.
 
-Above the table, a one-line **hand-off header**: `**ball: 🔵 PM** · open: 2 (F1, F2)` — *ball* is the side that owes the next move (🟢 FDE, 🔵 PM); list PM-only self-owned items (e.g. a telemetry pull) separately as `+1 PM-side`. Below the table, one italic **legend** line (bold-ID = changed; the Next glyphs; the token set).
+Above the table, a one-line **hand-off header**: `**ball: 🔵 PM** · open: 2 (F1, F2)` — *ball* is the side that owes the next move (🟢 FDE, 🔵 PM); list PM-only self-owned items (e.g. a telemetry pull) separately as `+1 PM-side`. Below the table, two things: a one-line **Reading it** guide, then a **Status legend** with one token per line and its meaning, so a cold reader needs nothing else:
+
+*Reading it: **bold ID** = changed this round · **Next** = a name (whose move) / ✓ done (resolved) / → AFP-## (tracked in delivery) / → roadmap (accepted, delivery spun up at close) · IDs join `feedback_record` / `triage_record`.*
+
+**Status legend**
+- ⏳ **open** — awaiting a decision; the ball is with whoever's named in **Next**.
+- 📋 **accepted** — committed as a near-term deliverable (scoped small enough to schedule now).
+- 🔎 **to size** — accepted in principle and *will* be built, but not yet scheduled or estimated; sits in the epic backlog until it gets a size.
+- 🔴 **blocked** — can't proceed without external / customer input (named on the item).
+- ✅ **resolved** — answered or closed from evidence or mechanism; no further action.
+- ❌ **declined** — not being pursued; the reason is in the item's *why*.
 
 **Three columns, no more.** Markdown has no column-width syntax, and Linear splits table width **evenly by column count** — so every extra column starves the Item text (a 5-column register shreds the description into 3 lines). Keep the register to `Item · Status · Next`; never add `Owner`/`Since`/`ID` back as their own columns. Keep each Item label ≤~6 words; if a cell needs a clause to be understood, that clause belongs in the prose, not the table.
 
-**Rationale lives in prose, not the table.** Asks and answers with their reasoning go in the numbered narrative sections as **stacked blockquote entries** — `> **A1 · 🔎 to size** — <label>` then `> → <the reasoning>`. The register table is the index; the narrative is the content.
+**Rationale lives in prose, not the table.** The register is the index; the **item cards** in the numbered sections are the content — each ask/answer/question is a **blockquote card** laid out **Ask → (decision) → Why**, per *Comment cards* below.
+
+### Comment cards — Ask → Why
+
+Inside a round's item sections, each item is a **blockquote card**, never a bare list row. It reads top-down and ends in a **bulleted `why`** so a human can audit the call and keep or override it.
+
+**FDE ask** — asker's side, no decision yet:
+
+> **A1 · Ask:** <the ask, one line>
+> → <one-line framing: weight / role among the asks>
+>
+> *why —*
+> - **From evidence:** <the chain from the evidence to this ask>
+> - **Why A1 and A2/A3:** <relation to the other asks — layered fallbacks, not duplicates>
+> - **Grounded in:** <the proof — say **direct evidence** vs **inference** explicitly>
+> - **Confidence:** <high/low, and on what>
+> - **Would soften if:** <the condition that would change it>
+
+**PM answer** — decider's side, restate the ask then decide:
+
+> **A1 · Ask:** <restate the FDE's ask, one line>
+> **Proposed decision:** <token> <label> — <one-line reason>
+>
+> *why —*
+> - **What "<token>" commits to:** <esp. for 🔎 to size — what it does and doesn't promise>
+> - **Over the alternatives:** <accept-now ✗ · decline ✗ · chosen ✓ — why this over those>
+> - **Grounded in:** <proof vs inference>
+> - **Confidence:** <…>
+> - **Would flip to <other decision> if:** <the trigger>
+
+**Question** — a Q# (FDE evidence-limit), F# (PM follow-up), or P# (PM action) has no decision:
+
+> **F1 · ⏳ open · Next: FDE** — <the question>
+> → <one line: what the answer decides>
+>
+> *why it matters —*
+> - <what hinges on the answer>
+> - **Grounded vs inferred:** <mark what's proven vs assumed>
+> - <who can answer, and why it's theirs>
+
+**Card rules:**
+- **Grounded vs inferred is mandatory** wherever a claim could be either — a human overrides an *inference* readily but hesitates on a *proven* fact, so the reasoning must say which. (This is the anti-fabrication guardrail applied to reasoning.)
+- **Bulleted lists render inside blockquote comment cards** (`> - item`) — use them for the `why`. **`<details>`/`<summary>` do NOT render in Linear comments** — never put a collapsible in a comment (it shows as raw tags; collapsibles render only in Documents).
+- **State the proposal/override note once per section, not per item** — see below.
+
+### The proposal & override note (once per section)
+
+Every item in an asks/answers/new-items section is the **agent's proposal**; the human keeps it by posting and can override later. State this **once**, in the section's intro line, prefixed with 🤖:
+
+- **FDE asks:** `🤖 *Every item below is the **agent's proposal** — the FDE can **override** any of them; an item shows an override note only once that happens.* Each is laid out **Ask → Why**, with the reasoning bulleted.`
+- **PM answers:** `🤖 *Every decision below is the **agent's proposal** — the PM can **override** any of them; an item shows an override note only once that happens.* Each is laid out **Ask → Proposed decision → Why**, with the reasoning bulleted.`
+- **PM new items:** `🤖 *Items the triage opened — follow-up questions to the FDE (**F#**) and a PM-owned action (**P#**); agent-proposed, the PM can drop or reword any.* Each is laid out **Question → Why**, with the reasoning bulleted.`
+
+Never repeat a per-item "proposed · keep · override?" marker on every card — it's noise. A marker appears on an individual item **only when a human actually overrides it** (that item then carries `✏️ overridden by <name>: <new call>`, and the change appears as the next register snapshot — never a silent edit).
 
 ### Comment structure (every loop comment)
 
@@ -122,9 +185,9 @@ Each comment in the loop is a self-contained, scannable unit:
 
    The ball emoji is the author's colour — **🟢 FDE**, **🔵 PM**. The `🤖` line is a small italic caption (who/what authored the comment), never the headline.
 2. **Numbered sections** — `## 1 · … ## 2 · …`, so the comment reads as an outline and sections are stable references (`§3`). The **📒 Register is always the last-numbered section**. Standard running order:
-   - **FDE Round 1:** 1 · What I found · 2 · Repro & results · 3 · Root cause · 4 · Asks · 5 · Register
+   - **FDE Round 1:** 1 · What I found · 2 · Repro & results · 3 · Root cause · 4 · Asks & Questions · 5 · Register
    - **FDE later rounds:** 1 · Answers · 2 · Record impact · 3 · Register
-   - **PM triage round:** 1 · Triage verdict · 2 · Answers · 3 · New items · 4 · Disposition · 5 · Register
+   - **PM triage round:** 1 · Triage verdict · 2 · Answers · 3 · New items opened this round · 4 · Disposition · 5 · Register
    - **PM close:** 1 · Decision · 2 · Delivery (Procedure E) · 3 · Closure test · 4 · For CS · 5 · Register
 
 The whole thread also gets a header block so a cold reader orients before any round — see *The thread header*.
@@ -154,7 +217,7 @@ The **FDE** adds this block when first publishing feedback (via `save_issue` wit
 2. `list_comments` on the issue — find the summary comment and any thread discussion since.
 3. The issue's `documents` list names its evidence docs — `get_document` each; read TL;DR → verdict → root cause → asks → PM-questions section → the record block.
 4. Answer the PM's question **with citations**: issue ID, doc title + URL, and section. Distinguish FDE-asserted facts from your inferences.
-5. If the PM has follow-ups the doc doesn't answer: check the doc's *open questions* first (the FDE may have flagged exactly that), then draft the questions as `F#` items (Next = FDE, or FDE (customer) if customer-dependent) — not loose bullets. They appear as rows in the **trailing register snapshot** of the round comment (posted per *Comment structure*), plus stacked blockquote entries in the narrative for the reasoning, and, on the PM's confirmation, post them as a `save_comment` on the issue thread.
+5. If the PM has follow-ups the doc doesn't answer: check the doc's *open questions* first (the FDE may have flagged exactly that), then draft the questions as `F#` items (Next = FDE, or FDE (customer) if customer-dependent) — not loose bullets. They appear as rows in the **trailing register snapshot** of the round comment (posted per *Comment structure*), plus as **blockquote cards** (Question → Why) in the New-items section, per *Comment cards*, and, on the PM's confirmation, post them as a `save_comment` on the issue thread.
 6. **Prevalence is a PM question.** When triaging, raise blast-radius / prevalence questions yourself as `P#` register items (e.g. "pull telemetry on how many suites are affected") — do not expect the FDE to supply prevalence; the FDE only has their one case.
 
 ### B. Aggregate across many items
@@ -165,7 +228,7 @@ The **FDE** adds this block when first publishing feedback (via `save_issue` wit
 5. Collect every record's `open_questions` into a "needs FDE input" list; offer to post each back to its issue thread as a comment.
 
 ### C. Close the loop asynchronously
-- Post PM follow-ups as `F#` items (Status ⏳ open) in a comment on the specific issue (`save_comment` with `issueId`) — they appear as rows in the comment's trailing register snapshot, with the reasoning as stacked blockquote entries in the narrative above it. The FDE answers on the thread by updating the row's status in their reply's own snapshot.
+- Post PM follow-ups as `F#` items (Status ⏳ open) in a comment on the specific issue (`save_comment` with `issueId`) — they appear as rows in the comment's trailing register snapshot, with the reasoning as **blockquote cards** (Question → Why), per *Comment cards*. The FDE answers on the thread by updating the row's status in their reply's own snapshot.
 - If the PM disposition is "accepted / roadmap / duplicate-of-X / needs-more-evidence", offer to post that as a comment too, so the FDE isn't left waiting.
 
 ### D. Record the decision on the issue
@@ -257,48 +320,103 @@ Two filled instances to imitate — a single-item triage, and the cross-feature 
 **Scenario:** the PM asks their agent *"What's AFP-### about, and draft my disposition."* The agent reads the intake → summary comment → evidence doc → parses the `feedback_record`. (Same demo item as the FDE skill's worked example — a multi-turn Testing Center gap, customer `internal-demo` — so the two examples visibly connect as one loop.)
 
 > ### 🔵 Round 1 · PM → FDE
-> **Purpose:** triage verdict + disposition · **Ball after:** 🟢 FDE · **Open:** 1 (A2) + 1 PM-side
+> **Purpose:** triage + answer A1–A3/Q1, open F1–F2 + P1 · **Ball after:** 🟢 FDE · **Open:** 2 (+1 PM-side)
 > *🤖 via `PM-feedback-triage-linear` · triage of AFP-###*
 >
 > ## 1 · Triage verdict
+> `limitation` (agree, not a bug) · severity `workaround-exists` (manual `sf agent preview` isn't CI-viable) · impact `confidence-loss, productivity-loss` · `reproduced-live`, root cause proven (1-vs-0 `VARIABLE_UPDATE_STEP`) — evidence quality high, no further validation needed our side.
 >
-> | Dimension | Verdict |
-> |---|---|
-> | Classification | `limitation` — agree with the FDE, not a bug |
-> | Severity | `workaround-exists` — but the workaround (manual `sf agent preview` runs) isn't CI-viable |
-> | Impact | `confidence-loss, productivity-loss` |
-> | Repro | `reproduced-live`, root cause proven via the Data Cloud trace — evidence quality high, no further validation needed |
+> ## 2 · Answers — A1–A3, Q1
 >
-> ## 2 · Answers
+> 🤖 *Every decision below is the **agent's proposal** — the PM can **override** any of them; an item shows an override note only once that happens.* Each is laid out **Ask → Proposed decision → Why**, with the reasoning bulleted.
 >
-> **A1 · 🔎 to size** — Execute prior turns to persist state (execution-model fix)
-> → accepted in principle; routed to the epic — **sizing pending** (not yet estimated).
+> > **A1 · Ask:** Execute prior turns to persist state.
+> > **Proposed decision:** 🔎 to size — the real fix, but an execution-model change; deferred to the epic, doesn't gate the near-term ship.
+> >
+> > *why —*
+> > - **What "to size" commits to:** accepted as valid and will be built — but not yet scheduled or estimated; it enters the multi-turn epic backlog and gets a size before any sprint commit.
+> > - **Over the alternatives:** accept-now ✗ (engine change, too heavy to commit unsized) · decline ✗ (it's the real fix) · route-to-epic ✓ (accept the intent, defer scheduling).
+> > - **Grounded in:** the FDE's Data Cloud trace — mechanism proven.
+> > - **Confidence:** high the fix is right, low on effort (unsized).
+> > - **Would flip to accept-now if:** P1 telemetry shows a large share of suites hit this → escalate A1 out of the epic.
+> >
+> > **A2 · Ask:** Warn when a case depends on a value not present in the transcript.
+> > **Proposed decision:** 📋 accepted — near-term ship; detectable at authoring time, no execution-model change. First deliverable.
+> >
+> > *why —*
+> > - **Over the alternatives:** the cheapest thing that cuts the pain immediately — additive, no engine risk.
+> > - **Grounded in:** statically detectable at authoring time.
+> > - **Confidence:** high, small scope.
+> > - **Role:** the near-term cover that lets A1 wait for sizing.
+> >
+> > **A3 · Ask:** Document the replay limitation.
+> > **Proposed decision:** 📋 accepted — immediate; ships alongside A2.
+> >
+> > *why —*
+> > - **Over the alternatives:** zero-cost, ships with A2 — no reason to defer.
+> > - **Grounded in:** the false-confidence finding (the FDE's §3).
+> > - **Confidence:** high.
+> >
+> > **Q1 · Question:** Voice channel not yet re-run — is that a blocker?
+> > **Proposed decision:** ✅ resolved — not blocking; the mechanism is channel-independent, so a voice re-run wouldn't change the plan.
+> >
+> > *why —*
+> > - **Grounded vs inferred:** rests on an **inference from the mechanism** (final-turn-only replay would fail voice the same way), not a voice observation — flagged so the FDE can push back.
+> > - **Would reopen if:** anyone wants empirical voice confirmation before roadmap → becomes a 🔴 blocked customer touch.
 >
-> **A2 · 📋 accepted** — Warn when a value isn't in the transcript
-> → Ships fastest — detectable at authoring time.
+> ## 3 · New items opened this round
 >
-> **A3 · 📋 accepted** — Document the state-replay limitation
-> → Ships alongside A2.
+> 🤖 *Items the triage opened — follow-up questions to the FDE (**F#**) and a PM-owned action (**P#**); agent-proposed, the PM can drop or reword any.* Each is laid out **Question → Why**, with the reasoning bulleted.
 >
-> ## 3 · New items
+> > **F1 · ⏳ open · Next: FDE** — Case mix: verify-then-act vs action-output-dependent?
+> > → Which kind of stateful case dominates the customer's suite? The answer sets A1's urgency.
+> >
+> > *why it matters —*
+> > - **Two kinds, from the FDE's evidence:** *re-derivable from transcript* (like S1/S3 — value sits in history text, reconstructed; these **survive**) vs *action-output-dependent* (like S2 — value existed only as a prior action's output, never in the transcript; these **break**).
+> > - **What the answer changes:** mostly S1/S3 → the A2 warning covers most of the pain and A1 can wait; mostly S2 → the warning only *flags* the gap, so A1 (or a seeding stopgap) becomes urgent.
+> > - **Why the FDE, not me:** they've reviewed the customer's actual flows; I'm triaging from one evidence pack.
+> >
+> > **F2 · 🔴 blocked · Next: FDE (customer)** — Appetite for a "seed session variables" beta?
+> > → Would the customer adopt a stopgap that seeds `customer_name` etc. as test inputs while A1 is designed?
+> >
+> > *why it matters —*
+> > - **What it unlocks:** seeding covers the S2 class for regression **without** re-executing prior turns — a bridge until A1 ships.
+> > - **Why ask before building:** a stopgap only earns its cost if the customer will actually adopt it.
+> > - **Why blocked:** needs a customer touch — can't be answered from the desk.
+> >
+> > **P1 · ⏳ open · Next: PM** — Telemetry: blast-radius of affected suites.
+> > → How many suites use `conversationHistory` with assertions on prior-turn action outputs?
+> >
+> > *why it matters —*
+> > - **What it decides:** prevalence sets overall priority — and it's the trigger that could pull A1 out of the epic (see A1's flip-condition).
+> > - **Why it's mine, not an FDE ask:** prevalence is fleet-wide; the FDE has one customer's evidence.
+> > - **Non-blocking:** the disposition doesn't wait on it.
 >
-> **P1 · ⏳ open** — Pull telemetry on affected multi-turn suites
-> → PM-owned prevalence check; not a question for the FDE.
->
-> ## 4 · Disposition
-> Accepted, per the register above. A1 is the real fix but heavier, so it's routed to the epic rather than blocking the near-term ship; A2 and A3 ship together now. P1 (prevalence) is the PM's own action, not a question for the FDE.
+> ## 4 · Disposition (preliminary)
+> **Accepted — advancing to roadmap review.** The strongest argument is the **false-confidence finding**: S1/S3 pass only because credentials sat in the transcript, so a green stateful suite can prove nothing. Final disposition follows once F1/F2 close.
 >
 > ## 5 · 📒 Register — after Round 1 (PM)
-> **ball: 🟢 FDE** · open: 1 (A2) + 1 PM-side
+> **ball: 🟢 FDE** · open: 2 (F1, F2) + 1 PM-side (P1, non-blocking)
 >
 > | Item | Status | Next |
 > |---|---|---|
 > | **A1** Execute prior turns to persist state | 🔎 to size · R1 | → roadmap |
-> | **A2** Warn when a value isn't in the transcript | 📋 accepted · R1 | FDE |
-> | **A3** Document the state-replay limitation | 📋 accepted · R1 | → roadmap |
-> | **P1** Pull telemetry on affected multi-turn suites | ⏳ open · R1 | PM |
+> | **A2** Warn on transcript-absent dependency | 📋 accepted · R1 | → roadmap |
+> | **A3** Document the replay limitation | 📋 accepted · R1 | → roadmap |
+> | **Q1** Voice channel not yet re-run | ✅ resolved · R1 | ✓ done |
+> | **F1** Case mix: S2-class share? | ⏳ open · R1 | FDE |
+> | **F2** Seeding-beta appetite? | 🔴 blocked · R1 | FDE (customer) |
+> | **P1** Telemetry blast-radius | ⏳ open · R1 | PM |
 >
-> *bold ID = changed this round · Next: name owes the move / ✓ done / → AFP-## / → roadmap · tokens: ⏳ open · 📋 accepted · 🔎 to size · 🔴 blocked · ✅ resolved · ❌ declined*
+> *Reading it: **bold ID** = changed this round · **Next** = a name (whose move) / ✓ done (resolved) / → AFP-## (tracked in delivery) / → roadmap (accepted, delivery spun up at close) · IDs join `feedback_record` / `triage_record`.*
+>
+> **Status legend**
+> - ⏳ **open** — awaiting a decision; the ball is with whoever's named in **Next**.
+> - 📋 **accepted** — committed as a near-term deliverable.
+> - 🔎 **to size** — accepted in principle and will be built, but not yet scheduled or estimated.
+> - 🔴 **blocked** — can't proceed without external / customer input.
+> - ✅ **resolved** — answered or closed; no further action.
+> - ❌ **declined** — not being pursued; reason in the item's *why*.
 
 ```yaml
 triage_record: v1
@@ -310,7 +428,7 @@ accepted_asks:
   - Document the state-replay limitation so PASS/FAIL is trusted correctly (A3 — immediate)
 target: multi-turn testing epic
 owner: FDE
-next_action: FDE confirms the warning (A2) is feasible at authoring time; PM runs the P1 telemetry pull separately
+next_action: FDE answers F1 (case mix) and F2 (seeding-beta appetite — customer-dependent); PM runs the P1 telemetry pull
 loop_status: open-with-FDE
 decided_date: 2026-07-20
 notes: Execution-model ask (A1) accepted in principle; routed to epic, sizing pending — not blocking the near-term ship. A material share of multi-turn suites likely depend on prior-turn action outputs; exact count pending the P1 telemetry pull — no hard number yet.
